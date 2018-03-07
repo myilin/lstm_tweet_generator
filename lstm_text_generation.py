@@ -13,17 +13,17 @@ from keras.optimizers import RMSprop, Adam
 from keras.callbacks import LambdaCallback, ModelCheckpoint, CSVLogger
 from keras.models import load_model
 
-from filesystem_helper import getPath
+from filesystem_helper import getModelPath
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
 from text_helper import getSequences
 from generation_helper import generateText
 
 def on_epoch_end(epoch, logs):
-    plotHistory(model_name)
+    plotHistory(model_name, timestamp)
 
     if(generate_on_epoch):
-        text_file = open(getPath(model_name + "/generated") + "epoch_" + str(epoch) + ".txt", 'w')
+        text_file = open(getModelPath(model_name, timestamp) + "zepoch_" + str(epoch) + ".txt", 'w')
         
         for temperature in [0.2, 0.5, 1.0, 1.2]:
             text_file.write('\n----- temperature:' + str(temperature) + "\n")
@@ -45,15 +45,6 @@ def on_epoch_end(epoch, logs):
 
 
 #random.seed(42)
-
-# use resume as a command line argument to continue interrupted training
-resuming = False
-if(len(sys.argv) > 1 and sys.argv[1] == "resume"):
-    resuming = True
-    print(resuming)
-
-t = datetime.datetime.now()
-timestamp = str(t.month) + "_" + str(t.day) + "-" + str(t.hour) + "h_" + str(t.minute) + "m"
 
 # neural net training config
 num_layers = 2 # (>=2)
@@ -78,7 +69,16 @@ model_name += "-" + str(batch_size)
 model_name += "-" + str(learning_rate).replace('.', ',')
 model_name += "-" + str(data_fraction)
 model_name += "-" + str(maxlen)
-model_name += "-" + timestamp
+
+# use resume as a command line argument to continue interrupted training
+resuming = False
+if(len(sys.argv) > 1 and sys.argv[1] == "resume"):
+    resuming = True
+    print(resuming)
+
+t = datetime.datetime.now()
+timestamp = str(t.month) + "_" + str(t.day) + "-" + str(t.hour) + "h_" + str(t.minute) + "m"
+
 
 try:
     train_tweets, test_tweets = getTweets(data_fraction)
@@ -112,13 +112,13 @@ try:
 
     epochs_elapsed = 0
 
-    model_path = getPath(model_name) + 'model.h5'
+    model_path = getModelPath(model_name, timestamp) + 'model.h5'
 
     if(resuming):
         model = load_model(model_path)
         epochs_elapsed = getEpochsElapsed(model_name)
     
-    csv_logger = CSVLogger(getPath(model_name) + 'history.log', append = resuming)
+    csv_logger = CSVLogger(getModelPath(model_name, timestamp) + 'history.log', append = resuming)
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
     checkpointer = ModelCheckpoint(filepath = model_path, verbose=1, save_best_only=False)
 
@@ -128,7 +128,7 @@ try:
               callbacks = [csv_logger, print_callback, checkpointer],
               validation_data = (test_x, test_y))
 except:
-    error_log_file = open(getPath(model_name) + "error.log", "w")
+    error_log_file = open(getModelPath(model_name, timestamp) + "error.log", "w")
     traceback.print_exc(file=error_log_file)
     error_log_file.close()
     

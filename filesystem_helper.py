@@ -1,16 +1,15 @@
 import os
 
-def getPath(folder_name):
-    output_root = "../deep_donald_data/"
-    if not os.path.exists(output_root):
-        os.makedirs(output_root)
-
-    path = output_root + folder_name + "/"
-    if not os.path.exists(path):
-        os.makedirs(path)
-
+def ensurePath(root, dir_names):
+    path = root
+    for dir_name in dir_names:
+        path += str(dir_name) + "/"
+        if not os.path.exists(path):
+            os.makedirs(path)
     return path
 
+def getModelPath(model_name, timestamp):
+    return ensurePath("../", ["deep_donald_data", model_name, timestamp])
 
-def getChartsPath():
-    return getPath("_charts")
+def getChartsPath(model_name):
+    return ensurePath("../", ["deep_donald_data", "_charts", model_name])
