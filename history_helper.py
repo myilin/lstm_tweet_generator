@@ -19,9 +19,7 @@ def plotHistory(model_name, timestamp):
         pyplot.savefig(getModelPath(model_name, timestamp) + "chart")
         pyplot.clf()
 
-def getEpochsElapsed(model_name):
-    try:
-        file_obj = open(getModelPath(model_name, timestamp) + 'history.log', 'r', newline='')
-        return len([line for line in csv.reader(file_obj, delimiter=',') if line][1:])
-    except:
-        return 0
+def getEpochsElapsed(model_name, timestamp):
+    file_obj = open(getModelPath(model_name, timestamp) + 'history.log', 'r', newline='')
+    history_lines = [line for line in csv.reader(file_obj, delimiter=',') if line]
+    return max(len(history_lines)-1, 0)

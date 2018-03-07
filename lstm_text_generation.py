@@ -13,7 +13,7 @@ from keras.optimizers import RMSprop, Adam
 from keras.callbacks import LambdaCallback, ModelCheckpoint, CSVLogger
 from keras.models import load_model
 
-from filesystem_helper import getModelPath
+from filesystem_helper import getModelPath, getLastTimestamp
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
 from text_helper import getSequences
@@ -70,15 +70,15 @@ model_name += "-" + str(learning_rate).replace('.', ',')
 model_name += "-" + str(data_fraction)
 model_name += "-" + str(maxlen)
 
+t = datetime.datetime.now()
+timestamp = t.strftime("%y_%m_%d-%H_%M")
+
 # use resume as a command line argument to continue interrupted training
 resuming = False
 if(len(sys.argv) > 1 and sys.argv[1] == "resume"):
     resuming = True
-    print(resuming)
-
-t = datetime.datetime.now()
-timestamp = str(t.month) + "_" + str(t.day) + "-" + str(t.hour) + "h_" + str(t.minute) + "m"
-
+    timestamp = getLastTimestamp(model_name)
+    print("resuming: " + model_name + " " + timestamp)
 
 try:
     train_tweets, test_tweets = getTweets(data_fraction)
@@ -116,7 +116,8 @@ try:
 
     if(resuming):
         model = load_model(model_path)
-        epochs_elapsed = getEpochsElapsed(model_name)
+        epochs_elapsed = getEpochsElapsed(model_name, timestamp)
+        print("epochs elapsed: " + str(epochs_elapsed))
     
     csv_logger = CSVLogger(getModelPath(model_name, timestamp) + 'history.log', append = resuming)
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)

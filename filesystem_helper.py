@@ -13,3 +13,9 @@ def getModelPath(model_name, timestamp):
 
 def getChartsPath(model_name):
     return ensurePath("../", ["deep_donald_data", "_charts", model_name])
+
+def getLastTimestamp(model_name):
+    path = "../deep_donald_data/" + model_name
+    if not os.path.exists(path):
+        return None
+    return max(os.listdir(path))
