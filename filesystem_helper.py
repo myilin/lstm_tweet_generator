@@ -1,5 +1,7 @@
 import os
 
+data_folder_name = "deepdonald_data"
+
 def ensurePath(root, dir_names):
     path = root
     for dir_name in dir_names:
@@ -9,13 +11,13 @@ def ensurePath(root, dir_names):
     return path
 
 def getModelPath(model_name, timestamp):
-    return ensurePath("../", ["deep_donald_data", model_name, timestamp])
+    return ensurePath("../", [data_folder_name, model_name, timestamp])
 
-def getChartsPath(model_name):
-    return ensurePath("../", ["deep_donald_data", "_charts", model_name])
+def getChartsPath():
+    return ensurePath("../", [data_folder_name, "_charts"])
 
 def getLastTimestamp(model_name):
-    path = "../deep_donald_data/" + model_name
+    path = "../" + data_folder_name + "/" + model_name
     if not os.path.exists(path):
         return None
     return max(os.listdir(path))

@@ -15,7 +15,7 @@ def plotHistory(model_name, timestamp):
         pyplot.ylabel('loss')
         pyplot.xlabel('epoch')
         pyplot.legend(['train', 'validation'], loc='upper right')
-        pyplot.savefig(getChartsPath(model_name) + timestamp)
+        pyplot.savefig(getChartsPath() + timestamp + "-" + model_name)
         pyplot.savefig(getModelPath(model_name, timestamp) + "chart")
         pyplot.clf()
 
