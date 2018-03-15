@@ -1,7 +1,8 @@
 import numpy as np
 
 def sample(preds, temperature=1.0):
-    # helper function to sample an index from a probability array
+    """Helper function to sample an index from a probability array."""
+    
     preds = np.asarray(preds).astype('float64')
     preds = np.log(preds) / temperature
     exp_preds = np.exp(preds)
@@ -13,6 +14,8 @@ def generateText(
         model, seed_sentence, generated_text_size, maxlen, 
         chars, char_indices, indices_char, 
         temperature=1.0):
+    """Generates text character-by-character, from the model in a given state, and a seed sentence."""
+    
     generated = ''
     sentence = seed_sentence
     generated += sentence
