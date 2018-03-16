@@ -10,63 +10,65 @@ You will also download the dataset of president Trump's funniest tweets to train
 
 ### Prerequisites
 
-- **Nvidia GPU**-powered computer highly recommended, otherwise training this network will take waaaay too long.
+#### Nvidia GPU-powered computer
+Highly recommended, otherwise training this network will take waaaay too long.
 
-- **Python and Tensorflow for GPU**
+#### Python and Tensorflow for GPU
 (alternatively, Theano or CNTK can be used as a backend for Keras, instead of Tensorflow).
 
 For GPU owners, you'll also need CUDA Toolkit and CuDNN, as well as latest drivers for your GPU.
 
 Follow setup instructions on [Keras.io](https://keras.io/#installation) and [Tensorflow.org](https://www.tensorflow.org/install) websites.
 
-*Pay Attention* to a specific version of python, as well as CUDA Toolkit and CuDNN that are compatible with Tensorflow's pre-built binaries.
+**Pay Attention** to a specific version of python, as well as CUDA Toolkit and CuDNN that are compatible with Tensorflow's pre-built binaries.
 
-- **Python and Tensorflow for CPU**
-If all the GPU-related stuff doesn't apply to you, installing tensorflow should be as easy as running
+#### Python and Tensorflow for CPU
+
+If all the GPU-related stuff doesn't apply to you, installing tensorflow should be as easy as running:
 ```
 pip3 install --upgrade tensorflow
 ```
-But still *Pay Attention* to a specific version of python compatible with Tensorflow's pre-built binaries.
+But still **Pay Attention** to a specific version of python compatible with Tensorflow's pre-built binaries.
 
-- **Keras**
-Should be as simple as running
+#### Keras
+Should be as simple as running:
 ```
 pip install keras
 ```
-For more details, refer to installation giude on [keras.io](https://keras.io/#installation)
+For more details, refer to installation giude on [keras.io](https://keras.io/#installation).
 
-- **Git client**
+#### Git client
 Duh...
 [git-scm.com/downloads](https://git-scm.com/downloads)
 
-- **Virtualenv**
+#### Virtualenv
 Not a strict requirement.
 However, if you're writing python code and are not using virtualenv, and just have been waiting for a divine sign to start doing so, *this is your divine sign*.
 Follow instructions on [virtualenv.pypa.io](https://virtualenv.pypa.io/en/stable/)
 
-- **matplotlib, numpy**
+#### matplotlib, numpy
 For charts and stuff.
 ```
-pip install  tensorflow
+pip install matplotlib
+pip install numpy
 ```
 
 ### Installing
 
-So, assuming that all prerequisites are satisfied, here are your next steps:
+Assuming that all prerequisites listed above are satisfied, here are your next steps:
 
-- Clone lstm tweet generator repo
+- Clone lstm tweet generator repo.
 ```
 git clone https://github.com/myilin/lstm_tweet_generator.git
 ```
 
-- Clone Donald Trump's tweets repo
+- Clone Donald Trump's tweets repo.
 ```
 git clone --depth 1 https://github.com/bpb27/trump_tweet_data_archive.git
 ```
-Adding '--depth 1' specifies that we only want to fetch the latest revision of the repo, otherwise it will take waaay too long to clone it.
+'--depth 1' parameter specifies that we only want to fetch the latest revision of the repo, otherwise it will take waaay too long to clone it.
 
-- Unzip them tweets
-Right into the repo's root directory.
+- Unzip them tweets right into the 'trump_tweet_data_archive' directory.
 
 ### Running
 
@@ -74,6 +76,7 @@ You're almost there!
 
 Navigate to tweet generator directory and run the lstm text generator script:
 ```
+cd tweet_generator
 python .\lstm_text_generation.py
 ```
 
