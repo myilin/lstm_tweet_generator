@@ -7,8 +7,8 @@ def getTweets(fraction=1):
 
     all_tweets_list = []
 
-    for year in range(2014, 2019):
-        file = open('../../data/tweets/condensed_' + str(year) + '.json', 'r')
+    for year in range(2009, 2100):
+        file = open('../trump_tweet_data_archive/condensed_' + str(year) + '.json', 'r')
         for tweet_object in json.load(file):
             all_tweets_list.append(str(tweet_object["text"].encode('ascii', 'ignore')))
         file.close()
