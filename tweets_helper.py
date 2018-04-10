@@ -1,4 +1,5 @@
 import json
+import os
 import random
 
 tweets_delimiter = '\n---\n'
@@ -7,11 +8,13 @@ def getTweets(fraction=1):
 
     all_tweets_list = []
 
-    for year in range(2009, 2100):
-        file = open('../trump_tweet_data_archive/condensed_' + str(year) + '.json', 'r')
-        for tweet_object in json.load(file):
-            all_tweets_list.append(str(tweet_object["text"].encode('ascii', 'ignore')))
-        file.close()
+    for year in range(2009, 2030):
+        path = '../trump_tweet_data_archive/condensed_' + str(year) + '.json'
+        if os.path.exists(path):
+            file = open(path, 'r')
+            for tweet_object in json.load(file):
+                all_tweets_list.append(str(tweet_object["text"].encode('ascii', 'ignore')))
+            file.close()
 
     all_tweets_list = all_tweets_list[0:int(len(all_tweets_list)/fraction)]
 

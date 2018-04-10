@@ -21,7 +21,7 @@ The structure of the output folder is as following:
 """
 import os
 
-data_folder_name = "deepdonald_data"
+data_folder_name = "generated_data"
 
 def ensurePath(root, dir_names):
     """Creates hierarchy of nested folders starting from root, if they did not exist.
@@ -33,6 +33,12 @@ def ensurePath(root, dir_names):
         if not os.path.exists(path):
             os.makedirs(path)
     return path
+
+def getDataPath():
+    """Returns path to a data folder.
+    Ensures its existence.
+    """
+    return ensurePath("../", [data_folder_name])
 
 def getModelPath(model_name, timestamp):
     """Returns path to a folder storing specified model/timestamp.

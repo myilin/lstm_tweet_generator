@@ -36,7 +36,7 @@ from keras.optimizers import RMSprop, Adam
 from keras.callbacks import LambdaCallback, ModelCheckpoint, CSVLogger
 from keras.models import load_model
 
-from filesystem_helper import getModelPath, getLastTimestamp
+from filesystem_helper import getDataPath, getModelPath, getLastTimestamp
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
 from text_helper import getSequences
@@ -59,9 +59,12 @@ def on_epoch_end(epoch, logs):
 
     if(generate_on_epoch):
         text_file = open(getModelPath(model_name, timestamp) + "zepoch_" + str(epoch) + ".txt", 'w')
+        latest_generated = open(getDataPath() + "latest_tweets.txt", 'w')
         
         for temperature in [0.2, 0.5, 1.0, 1.2]:
-            text_file.write('\n----- temperature:' + str(temperature) + "\n")
+            temperature_notice = '\n----- temperature:' + str(temperature) + "\n"
+            text_file.write(temperature_notice)
+            latest_generated.write(temperature_notice)
             
             generated = generateText(
                 model, seed_sentence, generated_text_size, maxlen, 
@@ -69,8 +72,10 @@ def on_epoch_end(epoch, logs):
                 temperature)
             
             text_file.write(generated)
+            latest_generated.write(generated)
         
         text_file.close()
+        latest_generated.write(generated)
 
     if(shuffle_on_epoch):
         shuffled_tweets = shuffledTweets(train_tweets)
@@ -92,7 +97,7 @@ learning_rate = 0.001
 maxlen = 40
 data_fraction = 1000
 shuffle_on_epoch = False
-total_epochs = 30
+total_epochs = 20
 
 # Text generation config.
 generate_on_epoch = True

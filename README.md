@@ -18,7 +18,7 @@ Highly recommended, otherwise training this network will take waaaay too long.
 
 For GPU owners, you'll also need CUDA Toolkit and CuDNN, as well as latest drivers for your GPU.
 
-Follow setup instructions on [Keras.io](https://keras.io/#installation) and [Tensorflow.org](https://www.tensorflow.org/install) websites.
+Follow setup instructions on [Tensorflow.org](https://www.tensorflow.org/install).
 
 **Pay Attention** to a specific version of python, as well as CUDA Toolkit and CuDNN that are compatible with Tensorflow's pre-built binaries.
 
@@ -68,7 +68,7 @@ git clone --depth 1 https://github.com/bpb27/trump_tweet_data_archive.git
 ```
 '--depth 1' parameter specifies that we only want to fetch the latest revision of the repo, otherwise it will take waaay too long to clone it.
 
-- Unzip them tweets right into the 'trump_tweet_data_archive' directory.
+- Unzip them tweets right into the ```trump_tweet_data_archive``` directory.
 
 ### Running
 
@@ -80,7 +80,55 @@ cd tweet_generator
 python .\lstm_text_generation.py
 ```
 
-Yay! Now simply wait fot another century or two (if you're training it on a CPU), or about a day (GPU) for the network to train on about 20 epochs, and enjoy fresh faked tweets by your favorite author's artificial impresonator.
+Wait for the script to finish running.
+It may take about 10 minutes with default settings (on CPU).
+
+Yay! Now enjoy fresh faked tweets by your favorite author's artificial impresonator, saved in 
+```..\generated_data\latest_tweets.txt```
+
+At this point it may look something like this:
+```
+the anan Trump Tump Tpun op ht bone Trone our Donee Trom cos fol tord
+```
+Not very impressive, but if you can see some text generated, the script works.
+This is a result of training of a small lstm (2 layers, 32 neurons each), on a 1/1000 fraction of Mr. Trump's tweets. 
+
+To improve quality of generated tweets, you need to train a much larger network, on a full dataset.
+
+**Use of GPU is highly recommended.**
+
+Training large network takes much longer.
+On my NVidia GTX960 it takes about an hour per epoch, so 20 epochs will take ~20 hours.
+
+Open file ```lstm_text_generation.py``` in your favorite editor, and change values of the following parameters:
+
+```
+num_layers = 3
+num_neurons = 512
+batch_size = 100
+learning_rate = 0.0002
+data_fraction = 1
+generated_text_size = 2000
+```
+
+Don't forget to save changes you've made, and launch the script:
+```
+python .\lstm_text_generation.py
+```
+
+This time, results should look more like this:
+```
+"@JohnnyRack: @realDonaldTrump @DonaldJTrumpJr @realDonaldTrump @FoxNews I wonder why you will be the next POTUS. You are so well done.  Think Like a Champion
+---
+"@jaketapper: @realDonaldTrump @foxandfriends So right now that we will MAKE AMERICA GREAT AGAIN! https://t.co/kIP3r7ZBCc"
+---
+"@YirdTrump4USA: @realDonaldTrump YOU are saying I got us by the same golf course on safety &amp; Bring Hillary as they all be disgracedunt. - Donald Trump"
+---
+"@ronmeier123: @LeezaGibbons @Dropponsteeds @realDonaldTrump @foxandfriends this country needs to get your daughter, you\'re behind you and kill me to get this country in the most high!'
+```
+**Better, huh?**
+
+****
 
 ## Author
 
@@ -95,5 +143,3 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 - Inspiration for the idea came from reading this awesome [blog post by Andrej Karpathy](http://karpathy.github.io/2015/05/21/rnn-effectiveness/)
 - Pieces of text generation functions taken from [Keras examples](https://github.com/keras-team/keras/tree/master/examples)
 - Convenient access to tweets provided by [trumptwitterarchive.com](http://www.trumptwitterarchive.com/about)
-
-
