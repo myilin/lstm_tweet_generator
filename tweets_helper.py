@@ -13,7 +13,11 @@ def getTweets(fraction=1):
         if os.path.exists(path):
             file = open(path, 'r')
             for tweet_object in json.load(file):
-                all_tweets_list.append(str(tweet_object["text"].encode('ascii', 'ignore')))
+                all_tweets_list.append(str(tweet_object["text"].encode('utf-8', 'ignore'))
+                    .replace("b'","")
+                    .replace("--", " ")
+                    .replace("-", " ")
+                    .replace("x9c", ""))
             file.close()
 
     all_tweets_list = all_tweets_list[0:int(len(all_tweets_list)/fraction)]
