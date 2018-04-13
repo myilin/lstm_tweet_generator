@@ -39,7 +39,8 @@ from keras.models import load_model
 from filesystem_helper import getDataPath, getModelPath, getLastTimestamp
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
-from text_helper import CharSequenceProvider
+from char_sequence_helper import CharSequenceProvider
+from embeddings_helper import WordSequenceProvider
 
 def on_epoch_end(epoch, logs):
     """Callback function that is being executed at the eng of each training epoch.
@@ -83,6 +84,7 @@ def on_epoch_end(epoch, logs):
 #random.seed(42)
 
 sequence_provider = CharSequenceProvider()
+#sequence_provider = WordSequenceProvider()
 
 # Neural network layers config.
 num_layers = 2 # (>=2)

@@ -1,67 +1,83 @@
 import os
 import sys
 
-from nltk.tokenize import TweetTokenizer, WordPunctTokenizer
+import numpy as np
+from nltk.tokenize import TweetTokenizer
 
 from tweets_helper import getTweets
 from filesystem_helper import getDataPath
 
 sys.path.insert(0, '../glove_twitter_tokenizer')
-from preprocess_twitter import tokenize
+import preprocess_twitter
 
-GLOVE_DIR = 'D:\\glove.twitter.27B'
+class WordSequenceProvider:
+    def initialize(self, full_text):
+        self.vec_len = 102
+        print('Indexing word vectors.')
+        self.embeddings_index = {}
+        #self.embeddings_words = []
+        with open('D:\\glove.twitter.27B\\glove.twitter.27B.100d.txt', encoding="utf-8") as f:
+            max_count = 10000
+            count = 0
+            for line in f:
+                values = line.split()
+                word = values[0]
+                #embeddings_words.append(word)
+                coefs = np.asarray(values[1:]+[0.0,0.0], dtype='float32')
+                self.embeddings_index[word] = coefs
+                count += 1
+                if(count > 10000):
+                    break
 
-print('Indexing word vectors.')
+        eot_vec = np.zeros(self.vec_len, dtype='float32')
+        eot_vec[-2] = 1.0
+        self.embeddings_index['<eot>'] = eot_vec
 
-#embeddings_index = {}
-embeddings_words = []
-with open(os.path.join(GLOVE_DIR, 'glove.twitter.27B.100d.txt'), encoding="utf-8") as f:
-    for line in f:
-        values = line.split()
-        word = values[0]
-        embeddings_words.append(word)
-        #coefs = np.asarray(values[1:], dtype='float32')
-        #embeddings_index[word] = coefs
+        self.unknown_vec = np.zeros(self.vec_len, dtype='float32')
+        self.unknown_vec[-1] = 1.0
 
-print('Found %s word vectors.' %len(embeddings_words))#% len(embeddings_index))
+        print('Found %s word vectors.' %len(self.embeddings_index))
 
-embeddings_words = set(embeddings_words)
+    def getSequences(self, text, maxlen):
+        tokens = self.__tokenize(text)
 
-print('Found %s unique word vectors.' %len(embeddings_words))#% len(embeddings_index))
+        print('Vectorization...')
+        token_vectors = np.zeros((len(tokens), self.vec_len), dtype='float32')
 
-train_tweets, test_tweets = getTweets()
-all_tweets = train_tweets + '\n---\n' + test_tweets
-all_tweets = all_tweets.replace('\n---\n', " <eot> ")
-all_tweets = tokenize(all_tweets)
-all_tweets = all_tweets.replace("<<", "<").replace(">>", ">")
+        unknown_words_count = 0
+        for id, token in enumerate(tokens):
+            if(token in self.embeddings_index):
+                token_vectors[id] = np.array(self.embeddings_index[token])
+            else:
+                token_vectors[id] = np.array(self.unknown_vec)
+                unknown_words_count += 1
 
-tknzr = TweetTokenizer(preserve_case=False, reduce_len=True, strip_handles=True)
-tokens = list(set(tknzr.tokenize(all_tweets)))
+        print('Found %s unknown tokens' %unknown_words_count)
+        print('Miss rate: %f' %(unknown_words_count/len(tokens)))
 
-tokens2 = []
+        x = np.zeros((len(token_vectors), maxlen, self.vec_len), dtype='float32')
+        y = np.zeros((len(token_vectors), self.vec_len), dtype='float32')
 
-for t in tokens:
-    if('.' in t):
-        tokens2.append(".")
-        tokens2.extend(t.split("."))
-    else:
-        tokens2.append(t)
+        step = 1
 
-tokens = list(set(tokens2))
+        for i in range(0, len(token_vectors) - maxlen, step):
+            x[i] = token_vectors[i: i + maxlen]
+            y[i] = token_vectors[i + maxlen]
 
-print('Found %s unique words in corpus.' %len(tokens))
+        return x, y
 
-unknown_tokens = [t + "\n" for t in tokens if t not in embeddings_words]
+    def __tokenize(self, text):
+        print('Tokenizing text (%s characters)' %len(text))
 
-known_tokens = [t + "\n" for t in tokens if t in embeddings_words]
+        text = text.replace('\n---\n', " <eot> ")
+        text = preprocess_twitter.tokenize(text)
+        text = text.replace("<<", "<").replace(">>", ">")
 
-print('Found %s known words' %len(known_tokens))
-print('Found %s new words (not seen in embeddings)' %len(unknown_tokens))
+        tknzr = TweetTokenizer(preserve_case=False, reduce_len=True, strip_handles=True)
+        tokens = tknzr.tokenize(text)
 
-known_words_file = open(getDataPath() + "known_words.txt", "w")
-known_words_file.writelines(sorted(known_tokens))
-known_words_file.close()
+        print('Found %s tokens' %len(tokens))
+        return tokens
 
-new_words_file = open(getDataPath() + "new_words.txt", "w")
-new_words_file.writelines(sorted(unknown_tokens))
-new_words_file.close()
+    def generateText(self, model, seed_sentence, generated_text_size, maxlen, temperature=1.0):
+        return "generateText not implemented"
