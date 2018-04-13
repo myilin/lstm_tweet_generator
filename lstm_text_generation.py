@@ -39,8 +39,7 @@ from keras.models import load_model
 from filesystem_helper import getDataPath, getModelPath, getLastTimestamp
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
-from text_helper import getSequences
-from generation_helper import generateText
+from text_helper import CharSequenceProvider
 
 def on_epoch_end(epoch, logs):
     """Callback function that is being executed at the eng of each training epoch.
@@ -66,10 +65,7 @@ def on_epoch_end(epoch, logs):
             text_file.write(temperature_notice)
             latest_generated.write(temperature_notice)
             
-            generated = generateText(
-                model, seed_sentence, generated_text_size, maxlen, 
-                chars, char_indices, indices_char, 
-                temperature)
+            generated = sequence_provider.generateText(model, seed_sentence, generated_text_size, maxlen, temperature)
             
             text_file.write(generated)
             latest_generated.write(generated)
@@ -79,12 +75,14 @@ def on_epoch_end(epoch, logs):
 
     if(shuffle_on_epoch):
         shuffled_tweets = shuffledTweets(train_tweets)
-        x, y = getSequences(shuffled_tweets, maxlen, chars, char_indices)
+        x, y = sequence_provider.getSequences(shuffled_tweets, maxlen)
         np.copyto(train_x, x)
         np.copyto(train_y, y)
 
 # Uncomment this for experiment reproducibility.
 #random.seed(42)
+
+sequence_provider = CharSequenceProvider()
 
 # Neural network layers config.
 num_layers = 2 # (>=2)
@@ -125,19 +123,13 @@ try:
     # Loading tweets corpus from files.
     train_tweets, test_tweets = getTweets(data_fraction)
 
-    # Getting the list of unique characters.
-    full_text = train_tweets + test_tweets
-    chars = sorted(list(set(full_text + seed_sentence)))
-    print('total chars:' + str(len(chars)))
-
-    # Mapping unique characters to indices and vice-versa.
-    char_indices = dict((c, i) for i, c in enumerate(chars))
-    indices_char = dict((i, c) for i, c in enumerate(chars))
-
+    full_text = train_tweets + test_tweets + seed_sentence
+    sequence_provider.initialize(full_text)
+    
     # Generating char sequences of maxlen length.
-    train_x, train_y = getSequences(train_tweets, maxlen, chars, char_indices)
-    test_x, test_y = getSequences(test_tweets, maxlen, chars, char_indices)
-
+    train_x, train_y = sequence_provider.getSequences(train_tweets, maxlen)
+    test_x, test_y = sequence_provider.getSequences(test_tweets, maxlen)
+    
     print('Building model...')
     model = Sequential()
     
@@ -148,13 +140,13 @@ try:
     # 
     # Setting dropout for all LSTM layers, except the first one, because it is applied to layer input.
     #
-    model.add(LSTM(num_neurons, return_sequences=True, input_shape=(maxlen, len(chars))))
+    model.add(LSTM(num_neurons, return_sequences=True, input_shape=train_x.shape[1:]))
     for i in range(num_layers - 2):
         model.add(LSTM(num_neurons, return_sequences=True, dropout=dropout))
     model.add(LSTM(num_neurons, dropout=dropout))
     
     # Output layer.
-    model.add(Dense(len(chars)))
+    model.add(Dense(train_y.shape[1]))
     model.add(Activation('softmax'))
 
     optimizer = Adam(lr=learning_rate)
