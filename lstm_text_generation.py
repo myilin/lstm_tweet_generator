@@ -40,7 +40,7 @@ from filesystem_helper import getDataPath, getModelPath, getLastTimestamp
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
 from char_sequence_helper import CharSequenceProvider
-from embeddings_helper import WordSequenceProvider
+from word_sequence_helper import WordSequenceProvider
 
 def on_epoch_end(epoch, logs):
     """Callback function that is being executed at the eng of each training epoch.
@@ -81,23 +81,23 @@ def on_epoch_end(epoch, logs):
         np.copyto(train_y, y)
 
 # Uncomment this for experiment reproducibility.
-#random.seed(42)
+random.seed(42)
 
-sequence_provider = CharSequenceProvider()
-#sequence_provider = WordSequenceProvider()
+#sequence_provider = CharSequenceProvider()
+sequence_provider = WordSequenceProvider()
 
 # Neural network layers config.
 num_layers = 2 # (>=2)
-num_neurons = 32
+num_neurons = 100
 dropout = 0.5
 
 # Training config.
-batch_size = 10
-learning_rate = 0.001
-maxlen = 40
-data_fraction = 1000
+batch_size = 50
+learning_rate = 0.002
+maxlen = 10
+data_fraction = 10
 shuffle_on_epoch = False
-total_epochs = 20
+total_epochs = 30
 
 # Text generation config.
 generate_on_epoch = True
@@ -149,11 +149,11 @@ try:
     
     # Output layer.
     model.add(Dense(train_y.shape[1]))
-    model.add(Activation('softmax'))
+    #model.add(Activation('softmax'))
 
     optimizer = Adam(lr=learning_rate)
     
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer)
+    model.compile(loss='mean_squared_error', optimizer=optimizer)
 
     epochs_elapsed = 0
 
