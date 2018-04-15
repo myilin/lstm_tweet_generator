@@ -61,7 +61,7 @@ def on_epoch_end(epoch, logs):
         text_file = open(getModelPath(model_name, timestamp) + "zepoch_" + str(epoch) + ".txt", 'w')
         latest_generated = open(getDataPath() + "latest_tweets.txt", 'w')
         
-        for temperature in [0.2, 0.5, 1.0, 1.2]:
+        for temperature in [1.0]:
             temperature_notice = '\n----- temperature:' + str(temperature) + "\n"
             text_file.write(temperature_notice)
             latest_generated.write(temperature_notice)
@@ -88,21 +88,21 @@ sequence_provider = WordSequenceProvider()
 
 # Neural network layers config.
 num_layers = 2 # (>=2)
-num_neurons = 100
+num_neurons = 32
 dropout = 0.5
 
 # Training config.
-batch_size = 50
-learning_rate = 0.002
+batch_size = 10
+learning_rate = 0.01
 maxlen = 10
-data_fraction = 10
+data_fraction = 100
 shuffle_on_epoch = False
 total_epochs = 30
 
 # Text generation config.
 generate_on_epoch = True
-generated_text_size = 200
-seed_sentence = 'Lorem ipsum dolor sit amet orci aliquam.'
+generated_text_size = 20
+seed_sentence = 'Our thoughts and prayers go out to the families and loved ones of the brave troops lost in the helicopter crash on the Iraq-Syria border yesterday.'
 
 model_name = str(num_layers) + "x" + str(num_neurons)
 model_name += "-" + str(dropout).replace('.', ',')
