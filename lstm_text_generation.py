@@ -72,7 +72,7 @@ def on_epoch_end(epoch, logs):
             latest_generated.write(generated)
         
         text_file.close()
-        latest_generated.write(generated)
+        latest_generated.close()
 
     if(shuffle_on_epoch):
         shuffled_tweets = shuffledTweets(train_tweets)
