@@ -29,18 +29,19 @@ import datetime
 
 import numpy as np
 
-from keras.layers import LSTM
+from keras.layers import LSTM, Dense, Activation, Dropout
 from keras.models import Sequential
-from keras.layers import Dense, Activation
 from keras.optimizers import RMSprop, Adam
 from keras.callbacks import LambdaCallback, ModelCheckpoint, CSVLogger
 from keras.models import load_model
+from keras.regularizers import l1, l2, l1_l2
 
 from filesystem_helper import getDataPath, getModelPath, getLastTimestamp
 from history_helper import plotHistory, getEpochsElapsed
 from tweets_helper import getTweets, shuffledTweets
 from char_sequence_helper import CharSequenceProvider
 from word_sequence_helper import WordSequenceProvider
+from weights_helper import saveWeights
 
 def on_epoch_end(epoch, logs):
     """Callback function that is being executed at the eng of each training epoch.
@@ -56,6 +57,8 @@ def on_epoch_end(epoch, logs):
     """
 
     plotHistory(model_name, timestamp)
+
+    saveWeights(model, model_name, timestamp, epoch)
 
     if(generate_on_epoch):
         text_file = open(getModelPath(model_name, timestamp) + "zepoch_" + str(epoch) + ".txt", 'w')
@@ -87,22 +90,25 @@ random.seed(42)
 sequence_provider = WordSequenceProvider()
 
 # Neural network layers config.
-num_layers = 2 # (>=2)
-num_neurons = 32
-dropout = 0.5
+num_layers = 1
+num_neurons = 128
+dropout = 0.0
 
 # Training config.
 batch_size = 10
-learning_rate = 0.01
-maxlen = 10
-data_fraction = 100
+learning_rate = 0.002
+data_fraction = 30
+maxlen = 3
+
+penalty = l2(0.00001)
+penalty_str = 'l2(0,00001)'
+
 shuffle_on_epoch = False
 total_epochs = 30
-
 # Text generation config.
 generate_on_epoch = True
-generated_text_size = 20
-seed_sentence = 'Our thoughts and prayers go out to the families and loved ones of the brave troops lost in the helicopter crash on the Iraq-Syria border yesterday.'
+generated_text_size = 12
+seed_sentence = 'Our and go prayers go out to the families and loved ones of the brave troops lost in the helicopter crash on the Iraq-Syria border yesterday.'
 
 model_name = str(num_layers) + "x" + str(num_neurons)
 model_name += "-" + str(dropout).replace('.', ',')
@@ -110,6 +116,7 @@ model_name += "-" + str(batch_size)
 model_name += "-" + str(learning_rate).replace('.', ',')
 model_name += "-" + str(data_fraction)
 model_name += "-" + str(maxlen)
+#model_name += "-" + penalty_str
 
 t = datetime.datetime.now()
 timestamp = t.strftime("%y_%m_%d-%H_%M")
@@ -142,14 +149,21 @@ try:
     # 
     # Setting dropout for all LSTM layers, except the first one, because it is applied to layer input.
     #
-    model.add(LSTM(num_neurons, return_sequences=True, input_shape=train_x.shape[1:]))
-    for i in range(num_layers - 2):
-        model.add(LSTM(num_neurons, return_sequences=True, dropout=dropout))
-    model.add(LSTM(num_neurons, dropout=dropout))
+    if(num_layers > 1):
+        model.add(LSTM(num_neurons, return_sequences=True, W_regularizer=l1(0.001), input_shape=train_x.shape[1:]))
+        for i in range(num_layers - 2):
+            model.add(LSTM(num_neurons, return_sequences=True, dropout=dropout))
+        model.add(LSTM(num_neurons, dropout=dropout))
+    else:
+        model.add(LSTM(num_neurons, input_shape=train_x.shape[1:]))
     
+    if(dropout > 0.0):
+        model.add(Dropout(dropout))
+
+
     # Output layer.
     model.add(Dense(train_y.shape[1]))
-    #model.add(Activation('softmax'))
+    #model.add(Activation('tanh'))
 
     optimizer = Adam(lr=learning_rate)
     
@@ -164,7 +178,7 @@ try:
         model = load_model(model_path)
         epochs_elapsed = getEpochsElapsed(model_name, timestamp)
         print("epochs elapsed: " + str(epochs_elapsed))
-    
+
     # Callbacks:
     # - Saving train/validation loss function values to a file. 
     csv_logger = CSVLogger(getModelPath(model_name, timestamp) + 'history.log', append = resuming)
