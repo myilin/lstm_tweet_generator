@@ -29,6 +29,11 @@ import datetime
 
 import numpy as np
 
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
+
 from keras.layers import LSTM, Dense, Activation, Dropout
 from keras.models import Sequential
 from keras.optimizers import RMSprop, Adam
@@ -91,13 +96,15 @@ sequence_provider = WordSequenceProvider()
 
 # Neural network layers config.
 num_layers = 1
-num_neurons = 32
+num_neurons = 64
 dropout = 0.0
+input_dropout = 0.0
+recurrent_dropout = 0.0
 
 # Training config.
-batch_size = 10
+batch_size = 100
 learning_rate = 0.002
-data_fraction = 100
+data_fraction = 1
 maxlen = 5
 
 penalty = l2(0.00001)
@@ -106,8 +113,8 @@ penalty_str = 'l2(0,00001)'
 shuffle_on_epoch = False
 total_epochs = 30
 # Text generation config.
-generate_on_epoch = True
-generated_text_size = 10
+generate_on_epoch = False
+generated_text_size = 20
 seed_sentence = 'Our thoughts and prayers go out to the families and loved ones of the brave troops lost in the helicopter crash on the Iraq-Syria border yesterday.'
 
 model_name = str(num_layers) + "x" + str(num_neurons)
@@ -116,7 +123,8 @@ model_name += "-" + str(batch_size)
 model_name += "-" + str(learning_rate).replace('.', ',')
 model_name += "-" + str(data_fraction)
 model_name += "-" + str(maxlen)
-#model_name += "-" + penalty_str
+#model_name += "-" + str(input_dropout)
+#model_name += "-" + str(recurrent_dropout)
 
 t = datetime.datetime.now()
 timestamp = t.strftime("%y_%m_%d-%H_%M")
@@ -150,12 +158,12 @@ try:
     # Setting dropout for all LSTM layers, except the first one, because it is applied to layer input.
     #
     if(num_layers > 1):
-        model.add(LSTM(num_neurons, return_sequences=True, W_regularizer=l1(0.001), input_shape=train_x.shape[1:]))
+        model.add(LSTM(num_neurons, return_sequences=True, input_shape=train_x.shape[1:]))
         for i in range(num_layers - 2):
             model.add(LSTM(num_neurons, return_sequences=True, dropout=dropout))
         model.add(LSTM(num_neurons, dropout=dropout))
     else:
-        model.add(LSTM(num_neurons, input_shape=train_x.shape[1:]))
+        model.add(LSTM(num_neurons, input_shape=train_x.shape[1:], unroll=True))
     
     if(dropout > 0.0):
         model.add(Dropout(dropout))

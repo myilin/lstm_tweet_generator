@@ -153,7 +153,7 @@ class WordSequenceProvider:
         print (result)
         return result
 
-    def findClosestWord(self, vector):
+    def findClosestWord(self, vector, verbose=False):
         closest_word = ""
         min_distance = -1.0
         closest_vec = []
@@ -168,25 +168,28 @@ class WordSequenceProvider:
                 closest_word = word
                 closest_vec = vec
                 better_match += 1
-                print("--> " + closest_word + ": " + str(dist))
+                if(verbose):
+                    print("--> " + closest_word + ": " + str(dist))
         
-        print("Match improved %s times" %better_match)
+        if(verbose):
+            print("Match improved %s times" %better_match)
 
-        eucl_dist = []
-        cosine_dist = []
-
-        for word, vec in self.embeddings_index.items():
-            eucl_dist.append((word, distance.euclidean(vector, vec)))
-            cosine_dist.append((word, distance.cosine(vector, vec)))
+        if(verbose):
+            eucl_dist = []
+            cosine_dist = []
         
-        eucl_dist.sort(key=lambda v: v[1])
-        cosine_dist.sort(key=lambda v: v[1])
-
-        for i in range(20):
-            print (str(eucl_dist[i][1]) + "  " + eucl_dist[i][0])
-            print (str(cosine_dist[i][1]) + "  " + cosine_dist[i][0])
-            print ("---\n")
-
+            for word, vec in self.embeddings_index.items():
+                eucl_dist.append((word, distance.euclidean(vector, vec)))
+                cosine_dist.append((word, distance.cosine(vector, vec)))
+            
+            eucl_dist.sort(key=lambda v: v[1])
+            cosine_dist.sort(key=lambda v: v[1])
+        
+            for i in range(20):
+                print (str(eucl_dist[i][1]) + "  " + eucl_dist[i][0])
+                print (str(cosine_dist[i][1]) + "  " + cosine_dist[i][0])
+                print ("---\n")
+            
         #print(min_distance)
         #print(vector)
         #print(closest_vec)

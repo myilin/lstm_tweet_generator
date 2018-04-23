@@ -4,7 +4,7 @@ import random
 
 tweets_delimiter = '\n---\n'
 
-def getTweets(fraction=1):
+def getTweets(fraction=1, augmentation=1):
 
     all_tweets_list = []
 
@@ -25,6 +25,10 @@ def getTweets(fraction=1):
     splitter_id = int(len(all_tweets_list)*0.8)
     train_tweets = all_tweets_list[0:splitter_id]
     test_tweets = all_tweets_list[splitter_id:]
+
+    for i in range(augmentation-1):
+        train_tweets.extend(random.shuffled(train_tweets[:]))
+        test_tweets.extend(random.shuffled(test_tweets[:]))
 
     return tweets_delimiter.join(train_tweets), tweets_delimiter.join(test_tweets)
 
