@@ -18,7 +18,7 @@ class WordSequenceProvider:
         print('Indexing word vectors.')
         self.embeddings_index = {}
         #self.embeddings_words = []
-        with open('C:\\glove.twitter.27B\\glove.twitter.27B.25d.txt', encoding="utf-8") as f:
+        with open('D:\\glove.twitter.27B\\glove.twitter.27B.25d.txt', encoding="utf-8") as f:
             max_count = 1000
             count = 0
             max_value = -100.0
@@ -38,8 +38,8 @@ class WordSequenceProvider:
                 min_value = min(min_value, min(coefs))
                 
                 count += 1
-                if(count > max_count):
-                    break
+                #if(count > max_count):
+                #    break
             
             print("min: " + str(min_value))
             print("max: " + str(max_value))
@@ -72,9 +72,9 @@ class WordSequenceProvider:
         print('Found %s word vectors.' %len(self.embeddings_index))
 
     def getSequences(self, text, maxlen):
-        tokens = self.__tokenize(text)
+        tokens = self.tokenize(text)
 
-        token_vectors = self.__vectorize(tokens, True)
+        token_vectors = self.vectorize(tokens, True)
 
         x = np.zeros((len(token_vectors), maxlen, self.vec_len), dtype='float32')
         y = np.zeros((len(token_vectors), self.vec_len), dtype='float32')
@@ -87,7 +87,7 @@ class WordSequenceProvider:
 
         return x, y
 
-    def __vectorize(self, tokens, verbose=False):
+    def vectorize(self, tokens, verbose=False):
         if(verbose):
             print('Vectorization...')
 
@@ -113,7 +113,7 @@ class WordSequenceProvider:
 
         return token_vectors
 
-    def __tokenize(self, text):
+    def tokenize(self, text):
         #print('Tokenizing text (%s characters)' %len(text))
 
         text = text.replace('\n---\n', " ")
@@ -128,18 +128,18 @@ class WordSequenceProvider:
 
     def generateText(self, model, seed_sentence, generated_text_size, maxlen, temperature=1.0):
         generated = []
-        sentence = self.__tokenize(seed_sentence)[0:maxlen]
+        sentence = self.tokenize(seed_sentence)[0:maxlen]
         generated += sentence
 
         all_values = []
 
         for i in range(generated_text_size):
             print(sentence)
-            x_pred = self.__vectorize(sentence)
+            x_pred = self.vectorize(sentence)
             preds = model.predict(np.array([x_pred]), verbose=0)[0]
             print(preds)
             all_values.extend(preds)
-            next_token = self.__findClosestWord(preds)
+            next_token = self.findClosestWord(preds)
             print(next_token)
             
             generated.append(next_token)
@@ -153,16 +153,16 @@ class WordSequenceProvider:
         print (result)
         return result
 
-    def __findClosestWord(self, vector):
+    def findClosestWord(self, vector):
         closest_word = ""
         min_distance = -1.0
         closest_vec = []
         better_match = 0
         for word, vec in self.embeddings_index.items():
             dist = distance.euclidean(vector, vec)
-            print(vector)
-            print(vec)
-            print(word)
+            #print(vector)
+            #print(vec)
+            #print(word)
             if(dist < min_distance or min_distance < 0.0):
                 min_distance = dist
                 closest_word = word
@@ -172,8 +172,24 @@ class WordSequenceProvider:
         
         print("Match improved %s times" %better_match)
 
+        eucl_dist = []
+        cosine_dist = []
+
+        for word, vec in self.embeddings_index.items():
+            eucl_dist.append((word, distance.euclidean(vector, vec)))
+            cosine_dist.append((word, distance.cosine(vector, vec)))
+        
+        eucl_dist.sort(key=lambda v: v[1])
+        cosine_dist.sort(key=lambda v: v[1])
+
+        for i in range(20):
+            print (str(eucl_dist[i][1]) + "  " + eucl_dist[i][0])
+            print (str(cosine_dist[i][1]) + "  " + cosine_dist[i][0])
+            print ("---\n")
+
         #print(min_distance)
         #print(vector)
         #print(closest_vec)
 
         return closest_word
+

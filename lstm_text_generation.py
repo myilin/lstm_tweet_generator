@@ -91,14 +91,14 @@ sequence_provider = WordSequenceProvider()
 
 # Neural network layers config.
 num_layers = 1
-num_neurons = 128
+num_neurons = 32
 dropout = 0.0
 
 # Training config.
 batch_size = 10
 learning_rate = 0.002
-data_fraction = 30
-maxlen = 3
+data_fraction = 100
+maxlen = 5
 
 penalty = l2(0.00001)
 penalty_str = 'l2(0,00001)'
@@ -107,8 +107,8 @@ shuffle_on_epoch = False
 total_epochs = 30
 # Text generation config.
 generate_on_epoch = True
-generated_text_size = 12
-seed_sentence = 'Our and go prayers go out to the families and loved ones of the brave troops lost in the helicopter crash on the Iraq-Syria border yesterday.'
+generated_text_size = 10
+seed_sentence = 'Our thoughts and prayers go out to the families and loved ones of the brave troops lost in the helicopter crash on the Iraq-Syria border yesterday.'
 
 model_name = str(num_layers) + "x" + str(num_neurons)
 model_name += "-" + str(dropout).replace('.', ',')
