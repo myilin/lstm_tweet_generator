@@ -26,11 +26,16 @@ def getTweets(fraction=1, augmentation=1):
     train_tweets = all_tweets_list[0:splitter_id]
     test_tweets = all_tweets_list[splitter_id:]
 
-    for i in range(augmentation-1):
-        train_tweets.extend(random.shuffled(train_tweets[:]))
-        test_tweets.extend(random.shuffled(test_tweets[:]))
+    result_train_tweets = []
+    result_test_tweets = []
 
-    return tweets_delimiter.join(train_tweets), tweets_delimiter.join(test_tweets)
+    for i in range(augmentation):
+        random.shuffle(train_tweets)
+        random.shuffle(test_tweets)
+        result_train_tweets.extend(train_tweets[:])
+        result_test_tweets.extend(test_tweets[:])
+
+    return tweets_delimiter.join(result_train_tweets), tweets_delimiter.join(result_test_tweets)
 
 def shuffledTweets(tweets_text):
 

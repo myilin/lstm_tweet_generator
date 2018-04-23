@@ -34,7 +34,7 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
-from keras.layers import LSTM, Dense, Activation, Dropout
+from keras.layers import LSTM, Dense, Activation, Dropout, CuDNNLSTM
 from keras.models import Sequential
 from keras.optimizers import RMSprop, Adam
 from keras.callbacks import LambdaCallback, ModelCheckpoint, CSVLogger
@@ -102,10 +102,11 @@ input_dropout = 0.0
 recurrent_dropout = 0.0
 
 # Training config.
-batch_size = 100
+batch_size = 1000
 learning_rate = 0.002
 data_fraction = 1
 maxlen = 5
+data_augmentation = 3
 
 penalty = l2(0.00001)
 penalty_str = 'l2(0,00001)'
@@ -123,6 +124,7 @@ model_name += "-" + str(batch_size)
 model_name += "-" + str(learning_rate).replace('.', ',')
 model_name += "-" + str(data_fraction)
 model_name += "-" + str(maxlen)
+model_name += "-x" + str(data_augmentation)
 #model_name += "-" + str(input_dropout)
 #model_name += "-" + str(recurrent_dropout)
 
@@ -138,7 +140,7 @@ if(len(sys.argv) > 1 and sys.argv[1] == "resume"):
 
 try:
     # Loading tweets corpus from files.
-    train_tweets, test_tweets = getTweets(data_fraction)
+    train_tweets, test_tweets = getTweets(data_fraction, data_augmentation)
 
     full_text = train_tweets + test_tweets + seed_sentence
     sequence_provider.initialize(full_text)
@@ -163,7 +165,7 @@ try:
             model.add(LSTM(num_neurons, return_sequences=True, dropout=dropout))
         model.add(LSTM(num_neurons, dropout=dropout))
     else:
-        model.add(LSTM(num_neurons, input_shape=train_x.shape[1:], unroll=True))
+        model.add(CuDNNLSTM(num_neurons, input_shape=train_x.shape[1:]))
     
     if(dropout > 0.0):
         model.add(Dropout(dropout))

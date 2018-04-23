@@ -14,7 +14,7 @@ import preprocess_twitter
 
 class WordSequenceProvider:
     def initialize(self, full_text):
-        self.vec_len = 25
+        self.vec_len = 26
         print('Indexing word vectors.')
         self.embeddings_index = {}
         #self.embeddings_words = []
@@ -28,7 +28,7 @@ class WordSequenceProvider:
                 values = line.split()
                 word = values[0]
                 #embeddings_words.append(word)
-                coefs = np.asarray(values[1:], dtype='float32')
+                coefs = np.asarray(values[1:]+[0.0], dtype='float32')
                 if(len(coefs) != self.vec_len):
                     wrong_sized += 1
                     continue
@@ -63,8 +63,8 @@ class WordSequenceProvider:
         pyplot.clf()
 
         eot_vec = np.zeros(self.vec_len, dtype='float32')
-        eot_vec[-2] = 1.0
-        #self.embeddings_index['<eot>'] = eot_vec
+        eot_vec[-1] = 1.0
+        self.embeddings_index['<eot>'] = eot_vec
 
         self.unknown_vec = np.zeros(self.vec_len, dtype='float32')
         self.unknown_vec[-1] = 1.0
@@ -116,7 +116,7 @@ class WordSequenceProvider:
     def tokenize(self, text):
         #print('Tokenizing text (%s characters)' %len(text))
 
-        text = text.replace('\n---\n', " ")
+        text = text.replace('\n---\n', " <eot> ")
         text = preprocess_twitter.tokenize(text)
         text = text.replace("<<", "<").replace(">>", ">")
 
@@ -177,19 +177,19 @@ class WordSequenceProvider:
         if(verbose):
             eucl_dist = []
             cosine_dist = []
-        
+
             for word, vec in self.embeddings_index.items():
                 eucl_dist.append((word, distance.euclidean(vector, vec)))
                 cosine_dist.append((word, distance.cosine(vector, vec)))
             
             eucl_dist.sort(key=lambda v: v[1])
             cosine_dist.sort(key=lambda v: v[1])
-        
+
             for i in range(20):
                 print (str(eucl_dist[i][1]) + "  " + eucl_dist[i][0])
                 print (str(cosine_dist[i][1]) + "  " + cosine_dist[i][0])
                 print ("---\n")
-            
+
         #print(min_distance)
         #print(vector)
         #print(closest_vec)
