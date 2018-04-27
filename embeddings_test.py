@@ -27,23 +27,23 @@ from matplotlib import pyplot
 sequence_provider = WordSequenceProvider()
 
 train_tweets, test_tweets = getTweets(100)
-
 full_text = train_tweets + test_tweets
-sequence_provider.initialize(full_text)
+tokens = sequence_provider.tokenize(full_text)
+token_vectors = sequence_provider.vectorize(tokens, True)
 
-vector = sequence_provider.vectorize(["president"])[0]
-
-eucl_dist = []
-cosine_dist = []
-
-for word, vec in sequence_provider.embeddings_index.items():
-    eucl_dist.append((word, distance.euclidean(vector, vec)))
-    cosine_dist.append((word, distance.cosine(vector, vec)))
-
-eucl_dist.sort(key=lambda v: v[1])
-cosine_dist.sort(key=lambda v: v[1])
-
-for i in range(20):
-    print (str(eucl_dist[i][1]) + "  " + eucl_dist[i][0])
-    print (str(cosine_dist[i][1]) + "  " + cosine_dist[i][0])
-    print ("---\n")
+#vector = sequence_provider.vectorize(["president"])[0]
+#
+#eucl_dist = []
+#cosine_dist = []
+#
+#for word, vec in sequence_provider.embeddings_index.items():
+#    eucl_dist.append((word, distance.euclidean(vector, vec)))
+#    cosine_dist.append((word, distance.cosine(vector, vec)))
+#
+#eucl_dist.sort(key=lambda v: v[1])
+#cosine_dist.sort(key=lambda v: v[1])
+#
+#for i in range(20):
+#    print (str(eucl_dist[i][1]) + "  " + eucl_dist[i][0])
+#    print (str(cosine_dist[i][1]) + "  " + cosine_dist[i][0])
+#    print ("---\n")

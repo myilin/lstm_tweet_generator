@@ -9,14 +9,18 @@ from matplotlib import pyplot
 from tweets_helper import getTweets
 from filesystem_helper import getDataPath
 
+sys.path.insert(0, '../dict-trie')
+from dict_trie import Trie
+
 sys.path.insert(0, '../glove_twitter_tokenizer')
 import preprocess_twitter
 
 class WordSequenceProvider:
-    def initialize(self, full_text):
+    def __init__(self):
         self.vec_len = 26
         print('Indexing word vectors.')
         self.embeddings_index = {}
+        self.embeddings_trie = Trie()
         #self.embeddings_words = []
         with open('D:\\glove.twitter.27B\\glove.twitter.27B.25d.txt', encoding="utf-8") as f:
             max_count = 1000
@@ -28,6 +32,7 @@ class WordSequenceProvider:
                 values = line.split()
                 word = values[0]
                 #embeddings_words.append(word)
+                self.embeddings_trie.add(word)
                 coefs = np.asarray(values[1:]+[0.0], dtype='float32')
                 if(len(coefs) != self.vec_len):
                     wrong_sized += 1
@@ -89,29 +94,46 @@ class WordSequenceProvider:
 
     def vectorize(self, tokens, verbose=False):
         if(verbose):
-            print('Vectorization...')
+            print('Vectorizing %s tokens' %len(tokens))
 
+        tokens_validated = []
+
+        valid_words = 0
         unknown_words_count = 0
+        misspellings_fixed = 0
+
         for token in tokens:
-            if (token not in self.embeddings_index):
-                unknown_words_count += 1
+            if(token in self.embeddings_index):
+                tokens_validated.append(token)
+                valid_words += 1
+            else:
+                best_match = self.embeddings_trie.best_levenshtein(token, 2)
+                if (best_match in self.embeddings_index):
+                    tokens_validated.append(best_match)
+                    misspellings_fixed += 1
+                else:    
+                    unknown_words_count += 1
+            
 
         if(verbose):
+            print('Found %s valid words' %valid_words)
+            print('Fixed %s misspelled tokens' %misspellings_fixed)
             print('Found %s unknown tokens' %unknown_words_count)
             print('Miss rate: %f' %(unknown_words_count/len(tokens)))
 
-        token_vectors = np.zeros((len(tokens)-unknown_words_count, self.vec_len), dtype='float32')
+        token_vectors = np.zeros((len(tokens_validated), self.vec_len), dtype='float32')
 
-        token_id = 0
-        for token in tokens:
-            if (token in self.embeddings_index):
-                token_vectors[token_id] = np.array(self.embeddings_index[token])
-                token_id += 1
-
-        if(verbose):
-            print('Found %s valid words' %token_id)
+        for token_id, token in enumerate(tokens_validated):
+            token_vectors[token_id] = self.embeddings_index[token]
 
         return token_vectors
+
+    def getWordVector(self, token):
+        if (token in self.embeddings_index):
+            return np.array(self.embeddings_index[token])
+
+        return []
+
 
     def tokenize(self, text):
         #print('Tokenizing text (%s characters)' %len(text))
